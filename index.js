@@ -7,6 +7,8 @@
 
 const player = "p"
 const floor = "f"
+const floor2 = "a"
+const floor3 = "d"
 const sky = "s"
 
 const wallT = "t"
@@ -32,40 +34,6 @@ setLegend(
     ..00222222222200
     ...000222222000.
     .....00000000...`],
-  [floor, bitmap`
-    4DDDDDDDDDD4DDDD
-    DDD4DDDDDDDDDDD4
-    DDDDDDDDDDD4DDDD
-    DDDDDD4DDDDDDD4D
-    DDDD4DDDDDDDDDDD
-    4DDDDDDDDDDD4DDD
-    DD4DDDDDDDDDDDDD
-    DDDD4DDDDD4DDDDD
-    DDD4DDDDDDDDDD4D
-    DDDDDDDDDDDDDDDD
-    DDD4DDDDD4DDDDDD
-    DDDD4DDDDDDDDDDD
-    DDDDDDDDDDDDDD4D
-    4DDDDDDD4DDDDDDD
-    DDDDD4DDDDDDDDDD
-    DDDDDDDD4DDDD4DD`],
-  [sky, bitmap`
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777
-    7777777777777777`],
   [wallT, bitmap`
     3333333333333333
     3......3...33..3
@@ -134,9 +102,77 @@ setLegend(
     C.CC.......CC..C
     C..CCC..C...CC.C
     CCCCCCCCCCCCCCCC`],
+  [floor, bitmap`
+    4DDDDDDDDDD4DDDD
+    DDD4DDDDDDDDDDD4
+    DDDDDDDDDDD4DDDD
+    DDDDDD4DDDDDDD4D
+    DDDD4DDDDDDDDDDD
+    4DDDDDDDDDDD4DDD
+    DD4DDDDDDDDDDDDD
+    DDDD4DDDDD4DDDDD
+    DDD4DDDDDDDDDD4D
+    DDDDDDDDDDDDDDDD
+    DDD4DDDDD4DDDDDD
+    DDDD4DDDDDDDDDDD
+    DDDDDDDDDDDDDD4D
+    4DDDDDDD4DDDDDDD
+    DDDDD4DDDDDDDDDD
+    DDDDDDDD4DDDD4DD`],
+    [floor2, bitmap`
+      .7....7.7.7.7...
+      7.7..77..77...7.
+      .7.77.7.7.7....7
+      7.7.77..77..77..
+      ..77..7..7...7.7
+      .7....777.77...7
+      .77.77...7...7..
+      ...7.77.77.....7
+      7..7....7..77..7
+      ...7...7.7..7.7.
+      .7...7..7.77..7.
+      .7.......7..7..7
+      7..7..77...7....
+      ...7..777.....7.
+      77..77...77.77..
+      7....7..77....77`],
+    [floor3, bitmap`
+      .7.77.7.777.7...
+      777..7777777777.
+      .7.777777.77.777
+      777.777777..77..
+      77777.7..7..77.7
+      77777.777.777..7
+      777.77.7777.77..
+      77.7777.77.777.7
+      7.777...77.777.7
+      7.77.7777777777.
+      7777.77.7777777.
+      7777.7...7..7.77
+      77.77.777.777.7.
+      .7.77.777.77..7.
+      77777777777.777.
+      7...77..77777777`],
+  [sky, bitmap`
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777
+    7777777777777777`],
 )
 
-setSolids([ player ])
+setSolids([ player, wallT, wallB, wallL, wallR ])
 
 let level = 0
 const levels = [
@@ -144,12 +180,12 @@ const levels = [
 sssssssssssssss
 sssssssssssssss
 sssssssssssssss
-sssfffffffffsss
-sssfffffffffsss
-sssfffffffffsss
-sssfffffffffsss
-sssfffffffffsss
-sssfffffffffsss
+sss.........sss
+sss.........sss
+sss.........sss
+sss.........sss
+sss.........sss
+sss.........sss
 sssssssssssssss
 sssssssssssssss
 sssssssssssssss`
@@ -170,6 +206,8 @@ addText("Hole in Wall", {x: 4, y: 2, color: color`f`})
 addText("Press any button", {x: 2, y: 13, color: color`2`})
 addText("to start!", {x: 2, y: 14, color: color`2`})
 addSprite(7, 6, player)
+
+setBackground(floor)
 
 let ended = false;
 
@@ -305,8 +343,7 @@ onInput("i", () => {
 })
 
 onInput("j", () => {
-  addSprite(2, 2, wallB)
-  addText('addded it', {x: 2, y: 14, color: color`2`})
+  
 })
 
 onInput("k", () => {
@@ -316,7 +353,7 @@ onInput("k", () => {
 })
 
 onInput("l", () => {
-
+  getFirst(wallT).y += 1
 })
 
 afterInput(() => {
