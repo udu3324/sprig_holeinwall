@@ -136,7 +136,7 @@ setLegend(
     CCCCCCCCCCCCCCCC`],
 )
 
-setSolids([ wallT, wallB, wallL, wallR ])
+setSolids([ player ])
 
 let level = 0
 const levels = [
@@ -214,21 +214,51 @@ function restart() {
   started = false
 }
 
+//1-9 holes top/bottom (3, 11)
+//1-6 holes left/right (3, 8)
 function addWall(side, holes) {
+  let wallCluster = []
+  let coordinates = []
+  
   switch (side) {
-    case "t": //top
+    case "top": {
+      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t"]
+      coordinates = [3, 4, 5, 6, 7, 8, 9, 10, 11]
+      
+      //randomly remove holes
+      for (let i = 0; i < holes; i++) {
+        wallCluster[randomRangeInt(0, 8)] = ""
+      }
+
+      //add it to the map
+      for (let i = 0; i < wallCluster.length; i++) {
+        //ignore holes in array
+        if (wallCluster[i] !== "") {
+          addSprite(coordinates[i], 0, wallT)
+          addText(`add: ${coordinates[i]}, ${wallCluster[i]}`, {x: 2, y: 14, color: color`2`})
+        }
+      }
 
       break
-    case "b": //bottom
+    }
+    case "bottom": {
 
       break
-    case "l": //left
+    }
+    case "left": {
 
       break
-    case "r": //right
+    }
+    case "right": {
 
       break
+    }
   }
+}
+
+//generates a whole number between min-max
+function randomRangeInt(min, max) {
+  return Math.round(Math.random() * (max - min) + min)
 }
 
 //display coordinates to zone things
@@ -243,8 +273,6 @@ onInput("w", () => {
     return
   }
   getFirst(player).y -= 1
-
-  checkOutOfBounds()
 })
 
 onInput("a", () => {
@@ -253,8 +281,6 @@ onInput("a", () => {
     return
   }
   getFirst(player).x -= 1
-
-  checkOutOfBounds()
 })
 
 onInput("s", () => {
@@ -263,8 +289,6 @@ onInput("s", () => {
     return
   }
   getFirst(player).y += 1
-
-  checkOutOfBounds()
 })
 
 onInput("d", () => {
@@ -273,17 +297,16 @@ onInput("d", () => {
     return
   }
   getFirst(player).x += 1
-
-  checkOutOfBounds()
 })
 
 //right side buttons for game functions
 onInput("i", () => {
-
+  addWall("top", 5)
 })
 
 onInput("j", () => {
-
+  addSprite(2, 2, wallB)
+  addText('addded it', {x: 2, y: 14, color: color`2`})
 })
 
 onInput("k", () => {
@@ -296,8 +319,10 @@ onInput("l", () => {
 
 })
 
-
-
 afterInput(() => {
   debug()
+  if (ended) {
+    return
+  }
+  checkOutOfBounds()
 })
