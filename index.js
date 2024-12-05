@@ -273,8 +273,34 @@ function addWall(side, holes) {
         //ignore holes in array
         if (wallCluster[i] !== "") {
           addSprite(coordinates[i], 0, wallT)
-          addText(`add: ${coordinates[i]}, ${wallCluster[i]}`, {x: 2, y: 14, color: color`2`})
+          //addText(`add: ${coordinates[i]}, ${wallCluster[i]}`, {x: 2, y: 14, color: color`2`})
         }
+      }
+
+      //make it go down to the last 11th tile
+      for (let y = 0; y < 13; y++) {
+        //for every ms, move the cluster down 1
+        setTimeout(() => {
+          //the cluster moved fully to the end, delete it
+          if (y === 12) {
+            for (let i = 0; i < wallCluster.length; i++) {
+              clearTile(coordinates[i], 11)
+              addSprite(coordinates[i], 11, sky)
+            }
+          } else {
+            //for each tile in cluster
+            for (let i = 0; i < wallCluster.length; i++) {
+              if (wallCluster[i] !== "") {
+                //console.log("coordinate", coordinates[i])
+                //addSprite(coordinates[i], y, floor)
+                const tileList = getTile(coordinates[i], y, wallT)
+                tileList[0].y += 1
+              }
+            }
+
+            checkOutOfBounds()
+          }
+        }, 500 * (y + 1))
       }
 
       break
