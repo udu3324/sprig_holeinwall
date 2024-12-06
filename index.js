@@ -195,33 +195,47 @@ setMap(levels[level])
 
 setPushables({
   [ player ]: [],
-  [ wallT ]: [ player],
-  [ wallB ]: [ player],
-  [ wallL ]: [ player],
-  [ wallR ]: [ player],
+  [ wallT ]: [ player ],
+  [ wallB ]: [ player ],
+  [ wallL ]: [ player ],
+  [ wallR ]: [ player ],
 })
 
 //when the game first starts
 addText("Hole in Wall", {x: 4, y: 2, color: color`f`})
 addText("Press any button", {x: 2, y: 13, color: color`2`})
 addText("to start!", {x: 2, y: 14, color: color`2`})
-addSprite(7, 6, player)
+addSprite(7, 7, player)
 
 setBackground(floor)
 
-let ended = false;
+runStartAnimation()
 
+let ended = false
 let started = false
+
+let startAnimation = true
+
 function start() {
   if (started) {
     return
   }
 
-  clearText()
   started = true
+
+  if (startAnimation) {
+    startAnimation = false
+    restart()
+  }
 }
 
+//checks if the player is out of bounds and stops the game there
 function checkOutOfBounds() {
+  //dont get triggered by start animation
+  if (!started) {
+    return
+  }
+
   if (getFirst(player).y > 8 || getFirst(player).y < 3) {
     ended = true
     
@@ -243,20 +257,24 @@ function checkOutOfBounds() {
   }
 }
 
-function restart() {  
-  //remove all walls left over
+function removeAllWalls() {
   for (const wallType of [wallT, wallB, wallL, wallR]) {
     for (const wall of getAll(wallType)) {
       wall.remove()
     }
   }
+}
+
+function restart() {  
+  //remove all walls left over
+  removeAllWalls()
 
   //add player back, but they might be gone
   if (getFirst(player) === undefined) {
-    addSprite(7, 6, player)
+    addSprite(7, 7, player)
   } else {
     getFirst(player).x = 7
-    getFirst(player).y = 6
+    getFirst(player).y = 7
   }
 
   //done
@@ -268,58 +286,9 @@ function restart() {
 //1-9 holes top/bottom (3, 11)
 //1-6 holes left/right (3, 8)
 
-function animateWall(ms, ticks, wallCluster, coordinates, wallType) {
-  for (let t = 0; t < ticks; t++) {
-    //for every ms, move the cluster one tile
-    setTimeout(() => {
-      //the cluster moved fully to the end. delete it
-      if (t === (ticks - 1)) {
-        for (let i = 0; i < wallCluster.length; i++) {
-          //find the final place that the tile will move to
-          let finalPlace = 0
-          switch (wallType) {
-            case wallT: {
-              finalPlace = 11
-              break
-            }
-          }
-          
-          //only remove specific type of tile
-          const tileList = getTile(coordinates[i], finalPlace)
-          for (const tile of tileList) {
-            if (tile.type === wallType) {
-              tile.remove()
-            }
-          }
-        }
-      } else {
-        //for each tile in cluster
-        for (let i = 0; i < wallCluster.length; i++) {
-          if (wallCluster[i] !== "") {
-            //only move specific type of tile
-            const tileList = getTile(coordinates[i], t)
-            for (const tile of tileList) {
-              if (tile.type === wallType) {
-                switch (wallType) {
-                  case wallT: {
-                    tileList[0].y += 1
-                    break
-                  }
-                  case wallB: {
-                    tileList[0].y -= 1
-                    break
-                  }
-                }
-              }
-            }
-          }
-        }
-        checkOutOfBounds()
-      }
-    }, ms * (t + 1))
-  }
-}
-
+//side - choose what side the wall is spawned in at
+//holes - how many holes there are in the wall
+//ms - how fast the wall moves per tile
 function addWall(side, holes, ms) {
   let wallCluster = []
   let coordinates = []
@@ -614,3 +583,28 @@ afterInput(() => {
   }
   checkOutOfBounds()
 })
+
+function runStartAnimation() {
+  addWall("top", 4, 150) /// ms * 12 = total time
+
+  let tick = 0
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      if (!startAnimation) {
+        return
+      }
+      getFirst(player).x = 7
+      getFirst(player).y = 7
+
+      removeAllWalls()
+
+      addWall("right", 2, 150) // ms * 15 = total time
+
+      setTimeout(() => {
+        removeAllWalls()
+        addWall("top", 2, 150)
+      }, 2250)
+    }, (1800 + 2250) * (tick + 1))
+    tick++
+  }
+}
