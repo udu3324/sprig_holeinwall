@@ -243,10 +243,23 @@ function checkOutOfBounds() {
   }
 }
 
-function restart() {
-  getFirst(player).x = 7
-  getFirst(player).y = 6
+function restart() {  
+  //remove all walls left over
+  for (const wallType of [wallT, wallB, wallL, wallR]) {
+    for (const wall of getAll(wallType)) {
+      wall.remove()
+    }
+  }
 
+  //add player back, but they might be gone
+  if (getFirst(player) === undefined) {
+    addSprite(7, 6, player)
+  } else {
+    getFirst(player).x = 7
+    getFirst(player).y = 6
+  }
+
+  //done
   clearText()
   ended = false
   started = false
@@ -254,18 +267,71 @@ function restart() {
 
 //1-9 holes top/bottom (3, 11)
 //1-6 holes left/right (3, 8)
-function addWall(side, holes) {
+
+function animateWall(ms, ticks, wallCluster, coordinates, wallType) {
+  for (let t = 0; t < ticks; t++) {
+    //for every ms, move the cluster one tile
+    setTimeout(() => {
+      //the cluster moved fully to the end. delete it
+      if (t === (ticks - 1)) {
+        for (let i = 0; i < wallCluster.length; i++) {
+          //find the final place that the tile will move to
+          let finalPlace = 0
+          switch (wallType) {
+            case wallT: {
+              finalPlace = 11
+              break
+            }
+          }
+          
+          //only remove specific type of tile
+          const tileList = getTile(coordinates[i], finalPlace)
+          for (const tile of tileList) {
+            if (tile.type === wallType) {
+              tile.remove()
+            }
+          }
+        }
+      } else {
+        //for each tile in cluster
+        for (let i = 0; i < wallCluster.length; i++) {
+          if (wallCluster[i] !== "") {
+            //only move specific type of tile
+            const tileList = getTile(coordinates[i], t)
+            for (const tile of tileList) {
+              if (tile.type === wallType) {
+                switch (wallType) {
+                  case wallT: {
+                    tileList[0].y += 1
+                    break
+                  }
+                  case wallB: {
+                    tileList[0].y -= 1
+                    break
+                  }
+                }
+              }
+            }
+          }
+        }
+        checkOutOfBounds()
+      }
+    }, ms * (t + 1))
+  }
+}
+
+function addWall(side, holes, ms) {
   let wallCluster = []
   let coordinates = []
   
   switch (side) {
     case "top": {
-      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t"]
-      coordinates = [3, 4, 5, 6, 7, 8, 9, 10, 11]
+      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t"]
+      coordinates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
       
       //randomly remove holes
       for (let i = 0; i < holes; i++) {
-        wallCluster[randomRangeInt(0, 8)] = ""
+        wallCluster[randomRangeInt(3, 11)] = ""
       }
 
       //add it to the map
@@ -276,44 +342,203 @@ function addWall(side, holes) {
           //addText(`add: ${coordinates[i]}, ${wallCluster[i]}`, {x: 2, y: 14, color: color`2`})
         }
       }
-
-      //make it go down to the last 11th tile
-      for (let y = 0; y < 13; y++) {
-        //for every ms, move the cluster down 1
+      
+      //animate going down
+      let tick = 0
+      for (let y = 0; y < 12; y++) {
+        //for every ms, move the cluster one tile
         setTimeout(() => {
-          //the cluster moved fully to the end, delete it
-          if (y === 12) {
+          //the cluster moved fully to the end. delete it
+          if (y === 11) {
             for (let i = 0; i < wallCluster.length; i++) {
-              clearTile(coordinates[i], 11)
-              addSprite(coordinates[i], 11, sky)
+              //only remove specific type of tile
+              const tileList = getTile(coordinates[i], 11)
+              for (const tile of tileList) {
+                if (tile.type === wallT) {
+                  tile.remove()
+                }
+              }
             }
           } else {
             //for each tile in cluster
             for (let i = 0; i < wallCluster.length; i++) {
               if (wallCluster[i] !== "") {
-                //console.log("coordinate", coordinates[i])
-                //addSprite(coordinates[i], y, floor)
-                const tileList = getTile(coordinates[i], y, wallT)
-                tileList[0].y += 1
+                //only move specific type of tile
+                const tileList = getTile(coordinates[i], y)
+                for (const tile of tileList) {
+                  if (tile.type === wallT) {
+                    tileList[0].y += 1
+                  }
+                }
               }
             }
-
             checkOutOfBounds()
           }
-        }, 500 * (y + 1))
+        }, ms * (tick + 1))
+
+        tick++
       }
 
       break
     }
     case "bottom": {
+      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t"]
+      coordinates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+
+      //randomly remove holes
+      for (let i = 0; i < holes; i++) {
+        wallCluster[randomRangeInt(3, 11)] = ""
+      }
+
+      //add it to the map
+      for (let i = 0; i < wallCluster.length; i++) {
+        //ignore holes in array
+        if (wallCluster[i] !== "") {
+          addSprite(coordinates[i], 11, wallB)
+        }
+      }
+
+      //animate going up
+      let tick = 0
+      for (let y = 12; y > 0; y--) {
+        //for every ms, move the cluster one tile
+        setTimeout(() => {
+          //the cluster moved fully to the end. delete it
+          if (y === 1) {
+            for (let i = 0; i < wallCluster.length; i++) {
+              //only remove specific type of tile
+              const tileList = getTile(coordinates[i], 0)
+              for (const tile of tileList) {
+                if (tile.type === wallB) {
+                  tile.remove()
+                }
+              }
+            }
+          } else {
+            //for each tile in cluster
+            for (let i = 0; i < wallCluster.length; i++) {
+              if (wallCluster[i] !== "") {
+                //only move specific type of tile
+                const tileList = getTile(coordinates[i], (y - 1))
+                for (const tile of tileList) {
+                  if (tile.type === wallB) {
+                    tileList[0].y -= 1
+                  }
+                }
+              }
+            }
+            checkOutOfBounds()
+          }
+        }, ms * (tick + 1))
+
+        tick++
+      }
 
       break
     }
     case "left": {
+      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t"]
+      coordinates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+      //random remove holes
+      for (let i = 0; i < holes; i++) {
+        wallCluster[randomRangeInt(3, 8)] = ""
+      }
+
+      //add it to map
+      for (let i = 0; i < wallCluster.length; i++) {
+        //ignore holes in array
+        if (wallCluster[i] !== "") {
+          addSprite(0, coordinates[i], wallL)
+        }
+      }
+
+      //animate it going right
+      let tick = 0
+      for (let x = 0; x < 15; x++) {
+        setTimeout(() => {
+          //the cluster moved fully to the end
+          if (x === 14) {
+            for (let i = 0; i < wallCluster.length; i++) {
+              //only remove specific type of tile
+              const tileList = getTile(14, coordinates[i])
+              for (const tile of tileList) {
+                if (tile.type === wallL) {
+                  tile.remove()
+                }
+              }
+            }
+          } else {
+            for (let i = 0; i < wallCluster.length; i++) {
+              if (wallCluster[i] !== "") {
+                //only move specific type of tile
+                const tileList = getTile(x, coordinates[i])
+                for (const tile of tileList) {
+                  if (tile.type === wallL) {
+                    tileList[0].x += 1
+                  }
+                }
+              }
+            }
+            checkOutOfBounds()
+          }
+
+        }, ms * (tick + 1))
+        tick++
+      }
 
       break
     }
     case "right": {
+      wallCluster = ["t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t"]
+      coordinates = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+      //random remove holes
+      for (let i = 0; i < holes; i++) {
+        wallCluster[randomRangeInt(3, 8)] = ""
+      }
+
+      //add it to map
+      for (let i = 0; i < wallCluster.length; i++) {
+        //ignore holes in array
+        if (wallCluster[i] !== "") {
+          addSprite(14, coordinates[i], wallR)
+        }
+      }
+
+      let tick = 0
+      for (let x = 15; x > 0; x--) {
+        setTimeout(() => {
+          //the cluster moved fully to the end
+          if (x === 1) {
+            for (let i = 0; i < wallCluster.length; i++) {
+              //only remove specific type of tile
+              const tileList = getTile(0, coordinates[i])
+              for (const tile of tileList) {
+                if (tile.type === wallR) {
+                  tile.remove()
+                }
+              }
+            }
+          } else {
+            console.log("animating", x)
+            for (let i = 0; i < wallCluster.length; i++) {
+              if (wallCluster[i] !== "") {
+                //only move specific type of tile
+                const tileList = getTile((x - 1), coordinates[i])
+                for (const tile of tileList) {
+                  if (tile.type === wallR) {
+                    tileList[0].x -= 1
+                  }
+                }
+              }
+            }
+            checkOutOfBounds()
+          }
+
+        }, ms * (tick + 1))
+        tick++
+      }
 
       break
     }
@@ -365,11 +590,11 @@ onInput("d", () => {
 
 //right side buttons for game functions
 onInput("i", () => {
-  addWall("top", 5)
+  addWall("right", 5, 250)
 })
 
 onInput("j", () => {
-  
+
 })
 
 onInput("k", () => {
@@ -379,7 +604,7 @@ onInput("k", () => {
 })
 
 onInput("l", () => {
-  getFirst(wallT).y += 1
+  
 })
 
 afterInput(() => {
